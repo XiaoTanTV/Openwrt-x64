@@ -44,11 +44,11 @@ git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki.git package/
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-momo.git  package/applications/luci-app-momo
 
 # 其它插件
-git clone --depth=1 https://github.com/AutoCONFIG/luci-app-vlmcsd.git package/applications/luci-app-vlmcsd
+git clone --depth=1 https://github.com/OneNAS-space/luci-app-vlmcsd.git package/applications/luci-app-vlmcsd
 git clone --depth=1 https://github.com/sirpdboy/luci-app-timecontrol.git package/applications/luci-app-timecontrol
 git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp.git  package/applications/luci-app-partexp
 git clone --depth=1 https://github.com/muink/luci-app-netspeedtest.git package/applications/luci-app-netspeedtest
-git clone --depth=1 https://github.com/AutoCONFIG/vlmcsd.git package/vlmcsd
+git clone --depth=1 https://github.com/OneNAS-space/vlmcsd.git package/vlmcsd
 git clone --depth=1 https://github.com/brvphoenix/wrtbwmon.git package/wrtbwmon
 
 # ==============================
