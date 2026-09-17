@@ -190,8 +190,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.SUPER_TOKEN }}
-        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined.img.gz
-        asset_name: openwrt-x86-64-generic-squashfs-combined-${{ matrix.target }}-${{ env.DATE }}.img.gz
+        file: openwrt/bin/targets/openwrt-x86-64-generic-squashfs-combined.img.gz
+        asset_name: ${{ matrix.target }}-openwrt-x86-64-generic-squashfs-combined-${{ env.DATE }}.img.gz
         tag: Openwrt-X64-${{ env.DATE }}
         overwrite: true
         file_glob: false
@@ -201,8 +201,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.SUPER_TOKEN }}
-        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
-        asset_name: openwrt-x86-64-generic-squashfs-combined-efi-${{ matrix.target }}-${{ env.DATE }}.img.gz
+        file: openwrt/bin/targets/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
+        asset_name: ${{ matrix.target }}-openwrt-x86-64-generic-squashfs-combined-efi-${{ env.DATE }}.img.gz
         tag: Openwrt-X64-${{ env.DATE }}
         overwrite: true
         file_glob: false
