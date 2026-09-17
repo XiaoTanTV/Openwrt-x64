@@ -171,7 +171,7 @@ jobs:
       with:
         repo_token: ${{ secrets.SUPER_TOKEN }}
         file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined.img.gz
-        asset_name: OpenWrt-${{ matrix.target }}-x86-64-generic-squashfs-combined-${{ env.DATE }}.img.gz
+        asset_name: ${{ matrix.target }}-x86-64-generic-squashfs-combined-${{ env.DATE }}.img.gz
         tag: Openwrt-X64-${{ env.DATE }}
         overwrite: true
         file_glob: false
@@ -182,7 +182,7 @@ jobs:
       with:
         repo_token: ${{ secrets.SUPER_TOKEN }}
         file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
-        asset_name: OpenWrt-${{ matrix.target }}-x86-64-generic-squashfs-combined-efi-${{ env.DATE }}.img.gz
+        asset_name: ${{ matrix.target }}-x86-64-generic-squashfs-combined-efi-${{ env.DATE }}.img.gz
         tag: Openwrt-X64-${{ env.DATE }}
         overwrite: true
         file_glob: false
