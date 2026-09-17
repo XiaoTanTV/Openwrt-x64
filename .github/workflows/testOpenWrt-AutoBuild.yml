@@ -165,6 +165,28 @@ jobs:
       if: (!cancelled())
       run: df -hT
       
+    - name: Upload combined firmware to release
+      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.SUPER_TOKEN }}
+        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined.img.gz
+        asset_name: OpenWrt-${{ matrix.target }}-x86-64-generic-squashfs-combined-${{ env.DATE }}.img.gz
+        tag: Openwrt-X64-${{ env.DATE }}
+        overwrite: true
+        file_glob: false
+
+    - name: Upload combined EFI firmware to release
+      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.SUPER_TOKEN }}
+        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
+        asset_name: OpenWrt-${{ matrix.target }}-x86-64-generic-squashfs-combined-efi-${{ env.DATE }}.img.gz
+        tag: Openwrt-X64-${{ env.DATE }}
+        overwrite: true
+        file_glob: false
+   
     - name:  Pack packages_dir
       if: steps.compile.outputs.status == 'success'
       run: |
@@ -185,27 +207,6 @@ jobs:
           mkdir -p ./Firmware/
           #find openwrt/bin/targets/ -name "*bin*" | xargs -i mv -f {} ./Firmware/
           find openwrt/bin/targets/ -name "*img*" | xargs -i mv -f {} ./Firmware/
-    - name: Upload combined firmware to release
-      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.SUPER_TOKEN }}
-        file: openwrt/bin/targets/openwrt-x86-64-generic-squashfs-combined.img.gz
-        asset_name: ${{ matrix.target }}-openwrt-x86-64-generic-squashfs-combined-${{ env.DATE }}.img.gz
-        tag: Openwrt-X64-${{ env.DATE }}
-        overwrite: true
-        file_glob: false
-
-    - name: Upload combined EFI firmware to release
-      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.SUPER_TOKEN }}
-        file: openwrt/bin/targets/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
-        asset_name: ${{ matrix.target }}-openwrt-x86-64-generic-squashfs-combined-efi-${{ env.DATE }}.img.gz
-        tag: Openwrt-X64-${{ env.DATE }}
-        overwrite: true
-        file_glob: false
 
         
     - name: Upload Packages to CowTransfer
