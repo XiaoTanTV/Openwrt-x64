@@ -1,4 +1,4 @@
-name: Openwrt-AutoBuild
+name: Openwrt-AutoBuild-old
 
 on:
   workflow_dispatch:
