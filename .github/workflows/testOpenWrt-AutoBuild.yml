@@ -9,8 +9,8 @@ on:
         default: 'ssh-actions'
 
   # 定时触发编译(周六早上3点, UTC+8 = 17点)
-#  schedule:
-#    - cron: 0 6 * * *
+   schedule:
+    - cron: 0 6 * * *
 
 env:
   RUN_VALIDATION: true
@@ -205,21 +205,21 @@ jobs:
       if: env.UPLOAD_PACKAGES_DIR == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled()　&& steps.compile.outputs.status == 'success'
       uses: actions/upload-artifact@main
       with:
-        name: OpenWrt-packages-${{matrix.target}}-${{ env.DATE }}
+        name: ${{matrix.target}}--packages-${{ env.DATE }}
         path: openwrt/bin/packages
         
     - name: Upload targets directory
       if: env.UPLOAD_TARGETS_DIR == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
       uses: actions/upload-artifact@main
       with:
-        name: OpenWrt-targets-${{matrix.target}}-${{ env.DATE }}
+        name: ${{matrix.target}}-targets-${{ env.DATE }}
         path: openwrt/bin/targets
         
     - name: Upload Firmware
       if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
       uses: actions/upload-artifact@main
       with:
-        name: OpenWrt-firmware-${{matrix.target}}-${{ env.DATE }}
+        name: ${{matrix.target}}-firmware-${{ env.DATE }}
         path: ./Firmware/
 
     - name: Upload combined firmware to release
