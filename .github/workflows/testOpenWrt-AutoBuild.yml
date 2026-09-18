@@ -2,10 +2,6 @@ name: Openwrt-AutoBuild
 
 on:
   workflow_dispatch:
-    inputs:name: Openwrt-AutoBuild
-
-on:
-  workflow_dispatch:
     inputs:
       ssh:
         description: '编译OpenWrt固件-SSH远程：改为“ssh”打开SSH连接'
@@ -13,8 +9,8 @@ on:
         default: 'ssh-actions'
 
   # 定时触发编译(周六早上3点, UTC+8 = 17点)
-  schedule:
-    - cron: 0 6 * * *
+#  schedule:
+#    - cron: 0 6 * * *
 
 env:
   RUN_VALIDATION: true
