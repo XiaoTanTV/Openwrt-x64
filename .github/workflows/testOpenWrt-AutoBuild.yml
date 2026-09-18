@@ -2,7 +2,274 @@ name: Openwrt-AutoBuild
 
 on:
   workflow_dispatch:
+    inputs:name: Openwrt-AutoBuild
+
+on:
+  workflow_dispatch:
     inputs:
+      ssh:
+        description: '编译OpenWrt固件-SSH远程：改为“ssh”打开SSH连接'
+        required: false
+        default: 'ssh-actions'
+
+  # 定时触发编译(周六早上3点, UTC+8 = 17点)
+  schedule:
+    - cron: 0 6 * * *
+
+env:
+  RUN_VALIDATION: true
+
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    if: github.repository_owner=='XiaoTanTV'
+    name: Build ${{matrix.target}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [OpenWrt25.12,OpenWrtSNAPSHOT]
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v6
+      
+    - name: Set Date
+      run: |
+        sudo timedatectl set-timezone 'Asia/Shanghai'
+        date=$(date +%Y%m%d)
+        echo "DATE=$date" >> $GITHUB_ENV
+
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+          root-reserve-mb: 4096
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Build
+      run: |
+          echo "Free space:"
+          df -h        
+
+    - name: Initialization environment
+      env:
+         DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker rmi `docker images -q` || true
+        sudo rm -rf /swapfile /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo -E apt-get -qq update
+        sudo -E apt -qq -y purge azure-cli* docker* ghc* zulu* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* dotnet* snap*
+        sudo -E apt -qq -y full-upgrade
+        sudo -E apt-get -qq -y install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev python3-distutils python3-setuptools rsync swig unzip zlib1g-dev file wget  lld llvm libclang-dev cmake libffi-dev libncursesw5-dev
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+    - name: Load Settings.ini
+      run: |    
+        source "${GITHUB_WORKSPACE}/user/${{matrix.target}}/settings.ini"
+        echo "REPO_URL=${REPO_URL}" >> $GITHUB_ENV
+        echo "REPO_BRANCH=${REPO_BRANCH}" >> $GITHUB_ENV
+        echo "UPLOAD_PACKAGES_DIR=${UPLOAD_PACKAGES_DIR}" >> $GITHUB_ENV
+        echo "UPLOAD_TARGETS_DIR=${UPLOAD_TARGETS_DIR}" >> $GITHUB_ENV
+        echo "UPLOAD_FIRMWARE=${UPLOAD_FIRMWARE}" >> $GITHUB_ENV
+        echo "UPLOAD_TO_ARTIFACTS=${UPLOAD_TO_ARTIFACTS}" >> $GITHUB_ENV
+        echo "UPLOAD_TO_REALEASE=${UPLOAD_TO_REALEASE}" >> $GITHUB_ENV
+        echo "UPLOAD_TO_COWTRANSFER=${UPLOAD_TO_COWTRANSFER}" >> $GITHUB_ENV
+        echo "WECHAT_NOTIFICATION=${WECHAT_NOTIFICATION}" >> $GITHUB_ENV
+        echo "DELETE_RELEASE=${DELETE_RELEASE}" >> $GITHUB_ENV
+        echo "DELETE_ARTIFACTS=${DELETE_ARTIFACTS}" >> $GITHUB_ENV
+        
+    - name: Clone source code
+      run: |
+        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
+
+    - name: Apply Patches
+      run: | 
+        echo "Apply patches"
+        if [ -n "$(ls -A "user/common/patches" 2>/dev/null)" ]; then
+        (
+          find "user/common/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d 'openwrt' -p0 --forward"
+        )
+        fi
+        if [ -n "$(ls -A "user/${{matrix.target}}/patches" 2>/dev/null)" ]; then
+        (
+          find "user/${{matrix.target}}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d 'openwrt' -p0 --forward"
+        )
+        fi         
+
+    - name: Update feeds
+      run: cd openwrt && ./scripts/feeds update -a
+
+      
+    - name: Install feeds
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      run: |        
+         echo "Apply files..."
+         if [ -n "$(ls -A "user/common/files" 2>/dev/null)" ]; then
+         cp -r -f user/common/files/* openwrt/package/base-files/files/
+         fi
+         if [ -n "$(ls -A "user/${{matrix.target}}/files" 2>/dev/null)" ]; then
+         cp -r -f user/${{matrix.target}}/files/* openwrt/package/base-files/files/
+         fi
+        
+         echo "Apply custom.sh"
+         if [ -f "user/common/custom.sh" ]; then
+         (
+           cd openwrt
+           /bin/bash "../user/common/custom.sh"
+         )
+         fi       
+         if [ -f "user/${{matrix.target}}/custom.sh" ]; then
+         (
+           cd openwrt
+           /bin/bash ../user/${{matrix.target}}/custom.sh ${{matrix.target}}
+         )
+         fi
+
+    - name: cache
+      uses: klever1988/cachewrtbuild@main
+      with:
+          ccache: 'true'
+          mixkey: 'ramips'
+          prefix: ${{ github.workspace }}/openwrt
+          
+    - name: Download package
+      id: package
+      run: |
+        cd openwrt
+        mv ../user/${{matrix.target}}/config.diff .config
+        make defconfig
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+        
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(($(nproc)+1)) thread compile"
+        make -j$(($(nproc)+1)) || make -j1 V=s
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+      
+
+   
+    - name:  Pack packages_dir
+      if: steps.compile.outputs.status == 'success'
+      run: |
+        cd openwrt/bin/packages/
+        tar -cvf  Openwrt-${{matrix.target}}-packages.tar ./
+        cp *.tar ..
+        
+    - name:  Pack targets_dir
+      if: steps.compile.outputs.status == 'success'
+      run: |
+        cd openwrt/bin/targets/
+        tar -cvf  Openwrt-${{matrix.target}}-targets.tar ./
+        cp *.tar ..
+        
+    - name: Assemble Firmware
+      run: |
+          rm -rf ./Firmware/
+          mkdir -p ./Firmware/
+          #find openwrt/bin/targets/ -name "*bin*" | xargs -i mv -f {} ./Firmware/
+          find openwrt/bin/targets/ -name "*squashfs-combined*" | xargs -i cp -f {} ./Firmware/
+
+        
+    - name: Upload Packages to CowTransfer
+      if: env.UPLOAD_PACKAGES_DIR == 'true' && env.UPLOAD_TO_COWTRANSFER == 'true' && !cancelled() &&  steps.compile.outputs.status == 'success'
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+         ./transfer cow --block 2621440 -s -p 64 --no-progress openwrt/bin/${{matrix.target}}_packages.tar
+        
+    - name: Upload Targetss to CowTransfer
+      if: env.UPLOAD_TARGETS_DIR == 'true' && env.UPLOAD_TO_COWTRANSFER == 'true' && !cancelled() &&　 steps.compile.outputs.status == 'success'
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+         ./transfer cow --block 2621440 -s -p 64 --no-progress openwrt/bin/${{matrix.target}}_targets.tar
+        
+    - name: Upload packages directory
+      if: env.UPLOAD_PACKAGES_DIR == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled()　&& steps.compile.outputs.status == 'success'
+      uses: actions/upload-artifact@main
+      with:
+        name: OpenWrt-packages-${{matrix.target}}-${{ env.DATE }}
+        path: openwrt/bin/packages
+        
+    - name: Upload targets directory
+      if: env.UPLOAD_TARGETS_DIR == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: actions/upload-artifact@main
+      with:
+        name: OpenWrt-targets-${{matrix.target}}-${{ env.DATE }}
+        path: openwrt/bin/targets
+        
+    - name: Upload Firmware
+      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_ARTIFACTS == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: actions/upload-artifact@main
+      with:
+        name: OpenWrt-firmware-${{matrix.target}}-${{ env.DATE }}
+        path: ./Firmware/
+
+    - name: Upload combined firmware to release
+      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.SUPER_TOKEN }}
+        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined.img.gz
+        asset_name: ${{ env.DATE }}-${{ matrix.target }}-x86-64-generic-squashfs-combined.img.gz
+        tag: Openwrt-X64-${{ env.DATE }}
+        overwrite: true
+        file_glob: false
+
+    - name: Upload combined EFI firmware to release
+      if: env.UPLOAD_FIRMWARE == 'true' && env.UPLOAD_TO_REALEASE == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.SUPER_TOKEN }}
+        file: openwrt/bin/targets/x86/64/openwrt-x86-64-generic-squashfs-combined-efi.img.gz
+        asset_name: ${{ env.DATE }}-${{ matrix.target }}-x86-64-generic-squashfs-combined-efi.img.gz
+        tag: Openwrt-X64-${{ env.DATE }}
+        overwrite: true
+        file_glob: false
+        
+    - name: 删除旧版本
+      uses: dev-drprasad/delete-older-releases@master
+      if: env.DELETE_RELEASE == 'true'
+      with:
+        keep_latest: 7                               # 要保留的最新版本数 0删除所有版本
+        delete_tag_pattern: ${{ env.FILE_NAME }}     # 指定标签
+        delete_tags: true                            #指定是否删除与旧版本关联的标签
+      env:
+        GITHUB_TOKEN: ${{ secrets.SUPER_TOKEN }}  # 令牌
+
+    - name: 删除旧的工作流程运行和工件
+      uses: Mattraks/delete-workflow-runs@main
+      if: env.DELETE_ARTIFACTS == 'true'
+      with:
+        token: ${{ secrets.SUPER_TOKEN }}    # 令牌
+        repository: ${{ github.repository }}    # 运行工作流的存储库的名称。
+        retain_days: 7                         # 工作流的保留天数进行比较的天数       
+        keep_minimum_runs: 0                    # 工作流程保留的最少运行次数              
+
+    - name: WeChat notification
+      if: env.WECHAT_NOTIFICATION == 'true' && !cancelled() && steps.compile.outputs.status == 'success'
+      run: curl https://sctapi.ftqq.com/${{ secrets.SCKEY }}.send?text=${{matrix.target}}-${{ env.DATE }}固件已编译完成
       ssh:
         description: '编译OpenWrt固件-SSH远程：改为“ssh”打开SSH连接'
         required: false
