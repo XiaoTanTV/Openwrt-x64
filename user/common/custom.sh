@@ -7,8 +7,8 @@ echo "=============================="
 
 # 1. 删除冲突或旧包
 # ==============================
-rm -rf feeds/luci/themes/luci-theme-argon
-rm -rf package/luci-theme-argon
+# rm -rf feeds/luci/themes/luci-theme-argon
+# rm -rf package/luci-theme-argon
 rm -rf package/applications/luci-app-argon-config
 rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,v2ray-plugin,xray-plugin,geoview,shadow-tls}
 rm -rf feeds/packages/lang/golang
@@ -16,10 +16,10 @@ git clone https://github.com/sbwml/packages_lang_golang -b 27.x feeds/packages/l
 # ==============================
 # 2. 拉取主题 & 配置插件
 # ==============================
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon || {
+# git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon || {
     echo "[ERROR] luci-theme-argon 拉取失败 ❌"; exit 1;
 }
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/applications/luci-app-argon-config || {
+# git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/applications/luci-app-argon-config || {
     echo "[ERROR] luci-app-argon-config 拉取失败 ❌"; exit 1;
 }
 
