@@ -17,11 +17,11 @@ git clone https://github.com/sbwml/packages_lang_golang -b 27.x feeds/packages/l
 # 2. 拉取主题 & 配置插件
 # ==============================
 # git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon || {
-    echo "[ERROR] luci-theme-argon 拉取失败 ❌"; exit 1;
-}
+#    echo "[ERROR] luci-theme-argon 拉取失败 ❌"; exit 1;
+# }
 # git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/applications/luci-app-argon-config || {
-    echo "[ERROR] luci-app-argon-config 拉取失败 ❌"; exit 1;
-}
+#    echo "[ERROR] luci-app-argon-config 拉取失败 ❌"; exit 1;
+# }
 
 git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config.git package/luci-app-aurora-config
 git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora.git package/luci-theme-aurora
