@@ -23,6 +23,8 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git packa
     echo "[ERROR] luci-app-argon-config 拉取失败 ❌"; exit 1;
 }
 
+git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config.git package/luci-app-aurora-config
+git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora.git package/luci-theme-aurora
 # ==============================
 # 3. 克隆插件
 # ==============================
