@@ -51,7 +51,7 @@ git clone --depth=1 https://github.com/sirpdboy/luci-app-timecontrol.git package
 git clone --depth=1 https://github.com/sirpdboy/luci-app-partexp.git  package/applications/luci-app-partexp
 git clone --depth=1 https://github.com/muink/luci-app-netspeedtest.git package/applications/luci-app-netspeedtest
 git clone --depth=1 https://github.com/OneNAS-space/vlmcsd.git package/vlmcsd
-git clone --depth=1 https://github.com/brvphoenix/wrtbwmon.git package/wrtbwmon
+# git clone --depth=1 https://github.com/brvphoenix/wrtbwmon.git package/wrtbwmon
 
 # ==============================
 # 3. 修复 boost-system 已删除的问题
