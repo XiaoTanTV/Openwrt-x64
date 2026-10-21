@@ -13,7 +13,8 @@ rm -rf package/applications/luci-app-argon-config
 rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,v2ray-plugin,xray-plugin,geoview,shadow-tls,smartdns}
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/sbwml/packages_lang_golang -b 27.x feeds/packages/lang/golang
-
+git clone  https://github.com/lwb1978/openwrt-smartdns.git  feeds/packages/net/smartdns
+# git clone  https://github.com/XiaoTanTV/openwrt-smartdns.git feeds/packages/net/smartdns
 # ==============================
 # 2. 拉取主题 & 配置插件
 # ==============================
