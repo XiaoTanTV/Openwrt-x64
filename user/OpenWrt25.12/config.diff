@@ -46,7 +46,7 @@ CONFIG_PACKAGE_vlmcsd=y
 CONFIG_PACKAGE_luci-app-vlmcsd=y
 
 # 带宽监控
-
+CONFIG_PACKAGE_luci-app-bandix=y
 # 工具类插件
 CONFIG_PACKAGE_luci-app-wechatpush=y
 CONFIG_PACKAGE_luci-app-tcpdump=y
