@@ -46,6 +46,8 @@ git clone --depth=1 https://github.com/tty228/luci-app-wechatpush.git package/ap
 git clone --depth=1 https://github.com/KFERMercer/luci-app-tcpdump.git package/applications/luci-app-tcpdump
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki.git package/applications/luci-app-nikki
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-momo.git  package/applications/luci-app-momo
+git clone --depth=1 https://github.com/timsaya/luci-app-bandix.git      package/applications/luci-app-bandix
+git clone --depth=1 https://github.com/timsaya/openwrt-bandix.git      package/applications/openwrt-bandix
 
 # 其它插件
 git clone --depth=1 https://github.com/OneNAS-space/luci-app-vlmcsd.git package/applications/luci-app-vlmcsd
